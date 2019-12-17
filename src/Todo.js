@@ -111,7 +111,7 @@ class Todo extends Component {
           <TextInput
             name="updatedItem"
             className="item"
-            value={this.state.title}
+            defaultValue={this.state.title}
           />
           <Button
             className="update-add-item"
