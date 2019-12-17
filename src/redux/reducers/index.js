@@ -43,6 +43,7 @@ const reducer = (state = innitialState, action) => {
       currentState.title = title;
       return currentState;
     }
+
     case actionTypes.UPDATE_TODO: {
       currentState.todos = currentState.todos.map(todo => {
         if (todo.id === currentState.id) {
@@ -53,6 +54,7 @@ const reducer = (state = innitialState, action) => {
       currentState.edit = false;
       return currentState;
     }
+
     case actionTypes.COMPLETE_TODO: {
       currentState.todos = currentState.todos.map(todo => {
         if (todo.id === action.payload) {
@@ -62,14 +64,17 @@ const reducer = (state = innitialState, action) => {
       });
       return currentState;
     }
+
     case actionTypes.SHOW_SPINNER: {
       currentState.loading = true;
       return currentState;
     }
+
     case actionTypes.HIDE_SPINNER: {
       currentState.loading = false;
       return currentState;
     }
+
     default: {
       return currentState;
     }
