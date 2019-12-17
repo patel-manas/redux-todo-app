@@ -1,108 +1,46 @@
-import React, { Component, createRef } from "react";
+import React, { Component } from "react";
 import { TextInput, Button, Heading, Pane, IconButton } from "evergreen-ui";
+import { connect } from "react-redux";
+import {
+  getTodo,
+  addTodo,
+  deleteTodo,
+  editTodo,
+  updateTodo,
+  completeTodo
+} from "./redux/actions";
 
 class Todo extends Component {
   constructor(props) {
     super(props);
-    this.ipRef = createRef();
-    this.state = {
-      edit: false,
-      id: null,
-      mockData: [
-        {
-          id: "1",
-          title: "Buy Milk.",
-          done: false,
-          date: new Date()
-        },
-        {
-          id: "2",
-          title: "Meeting with Ali.",
-          done: false,
-          date: new Date()
-        },
-        {
-          id: "3",
-          title: "Tea break.",
-          done: false,
-          date: new Date()
-        },
-        {
-          id: "4",
-          title: "Go for a run.",
-          done: false,
-          date: new Date()
-        }
-      ]
-    };
+    console.log("props", this.props);
   }
 
   onSubmitHandle = event => {
     event.preventDefault();
-
-    this.setState({
-      mockData: [
-        ...this.state.mockData,
-        {
-          id: Date.now(),
-          title: event.target.item.value,
-          done: false,
-          date: new Date()
-        }
-      ]
-    });
-
+    this.props.onAddTodo(event.target.item.value);
     event.target.item.value = "";
   };
 
   onDeleteHandle = id => {
-    this.setState({
-      mockData: this.state.mockData.filter(item => item.id !== id)
-    });
+    this.props.onDeleteTodo(id);
   };
 
   onEditHandle = (event, id, title) => {
-    this.setState({
-      edit: true,
-      id,
-      title
-    });
+    this.props.onEditTodo({ edit: true, id, title });
   };
 
   onUpdateHandle = event => {
     event.preventDefault();
-
-    this.setState({
-      mockData: this.state.mockData.map(item => {
-        if (item.id === this.state.id) {
-          item["title"] = event.target.updatedItem.value;
-          return item;
-        }
-
-        return item;
-      })
-    });
-    // this.ipRef.current.value = "";
-    this.setState({
-      edit: false
-    });
+    this.props.onUpdateTodo(event.target.updatedItem.value);
   };
 
-  onCompleteHandle = id => {
-    this.setState({
-      mockData: this.state.mockData.map(item => {
-        if (item.id === id) {
-          item["done"] = true;
-          return item;
-        }
-
-        return item;
-      })
-    });
-  };
+  onCompleteHandle = id => this.props.onCompleteTodo(id);
 
   renderForm() {
-    if (this.state.edit) {
+    console.log({ f: this.props });
+    if (this.props.edit) {
+      const existingDesc = this.props.title;
       return (
         <form
           onSubmit={e => this.onUpdateHandle(e)}
@@ -111,7 +49,7 @@ class Todo extends Component {
           <TextInput
             name="updatedItem"
             className="item"
-            value={this.state.title}
+            defaultValue={existingDesc}
           />
           <Button
             className="update-add-item"
@@ -123,6 +61,10 @@ class Todo extends Component {
         </form>
       );
     }
+  }
+
+  componentDidMount() {
+    this.props.onGetTodo();
   }
 
   render() {
@@ -141,7 +83,7 @@ class Todo extends Component {
           onSubmit={e => this.onSubmitHandle(e)}
           style={{
             paddingLeft: "50px",
-            display: this.state.edit ? "none" : "block"
+            display: this.props.edit ? "none" : "block"
           }}
         >
           <TextInput name="item" />
@@ -155,9 +97,21 @@ class Todo extends Component {
             Add
           </Button>
         </form>
+        <div
+          style={{
+            width: "100%",
+            height: "100vh",
+            position: "absolute",
+            backgroundColor: "#fff",
+            zIndex: "999",
+            display: this.props.loading ? "block" : "none"
+          }}
+        >
+          <h1>loading ...</h1>
+        </div>
         {this.renderForm()}
         <ul>
-          {this.state.mockData.map(item => (
+          {this.props.todos.map(item => (
             <li key={item.id} className={item.done ? "done" : "hidden"}>
               <Heading size={400} marginTop="default" marginBottom="default">
                 {item.title}
@@ -203,4 +157,28 @@ class Todo extends Component {
   }
 }
 
-export default Todo;
+const mapStateToProps = state => {
+  return {
+    todos: state.todos,
+    edit: state.edit,
+    id: state.id,
+    loading: state.loading,
+    title: state.title
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    onGetTodo: () => dispatch(getTodo()),
+    onAddTodo: desc => dispatch(addTodo(desc)),
+    onDeleteTodo: id => dispatch(deleteTodo(id)),
+    onEditTodo: todo => dispatch(editTodo(todo)),
+    onUpdateTodo: desc => dispatch(updateTodo(desc)),
+    onCompleteTodo: id => dispatch(completeTodo(id))
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Todo);
